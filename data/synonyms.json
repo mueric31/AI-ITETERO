@@ -20,7 +20,13 @@
   
   "umugore": ["abagore", "umubyeyi", "mama", "nyina"],
   "umugabo": ["abagabo", "data", "se", "papa"],
-  "utwite": ["inda", "gutwita", "umubyeyi utwite", "pregnancy", "pregnant"],
+  "utwite": ["inda", "gutwita", "umubyeyi utwite", "pregnancy", "pregnant","ntwite","umugore wanjye aratwite","atwite","umugore utwite"],
+  "amabere umugore utwite": ["amabere y'umugore utwite"],
+  "umugore utwite afite isesemi":["umugore wanjye ko afite isesemi","umugore wanjye yagize isesemi","mugihe umugore afite isesemi"],
+  "kubona imihango": ["kugira imihango", "kuzana imihango", "yagize imihango", "agize imihango"],
+  "gutinda kw'imihango":["kubura imihango","kutabona imihango", "yabuze imihango", "ntari kubona imihango", "imihango yabuze","ntari kubona imihango","kubura kw'imihango","imihango yatinze","sindi kubona imihango","nabuze imihango","yabuze imihango","yatinze kujya mu mihango","umugore yabuze imihango"],
+  "Imirire myiza y’umugore utwite":["ibyo kurya wagaburira umugore utwite"],
+  "imirire mibi ku mugore utwite":["indyo mbi ku mugore utwite","indyo ituzuye ku mugore utwite","kurya nabi mu gihe utwite"],
 
   "kurira": ["kworora", "crying", "tears", "kuborora"],
   "guhana": ["ikibanza", "punishment", "discipline", "guhanira"],
