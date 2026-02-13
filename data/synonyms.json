@@ -28,8 +28,8 @@
   "Imirire myiza y’umugore utwite":["ibyo kurya wagaburira umugore utwite"],
   "imirire mibi ku mugore utwite":["indyo mbi ku mugore utwite","indyo ituzuye ku mugore utwite","kurya nabi mu gihe utwite"],
 
-  "kurira": ["kworora", "crying", "tears", "kuborora"],
-  "guhana": ["ikibanza", "punishment", "discipline", "guhanira"],
+  "kurira": ["kuboroga", "crying", "tears", "yarize","kwiriza","bakunda kurira"],
+  "guhana": ["uko wahana umwana", "punishment", "discipline", "guhanira"],
   "kubyara": ["kubyarira", "delivery", "birth", "labor"],
   "muganga": ["kwa muganga", "doctor", "hospital", "clinic"],
   "ubujyanama": ["inama", "advice", "counseling", "guidance"],
@@ -40,6 +40,9 @@
   "umunyu": ["salt", "salty"],
   "vitamini": ["vitamin", "nutrients"],
   "ubuzima": ["health", "wellness"],
-  "kuvoma": ["washing", "cleaning", "intoki"]
+  "kuvoma": ["washing", "cleaning", "intoki"],
+  "guha abana imfashabere":["imfashabere"],
+  "guha umwana igihano":["guhana umwana","gukubita umwana","uko wahana umwana"]
+  
 
 }

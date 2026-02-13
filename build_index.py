@@ -1,7 +1,7 @@
 import json, os, faiss, numpy as np
 from tqdm import tqdm
 from openai import OpenAI
-from config import PDF_PATH, FAISS_PATH, META_PATH, EMBED_MODEL, CHUNK_SIZE, OVERLAP
+from config import FAISS_PATH, META_PATH, EMBED_MODEL, CHUNK_SIZE, OVERLAP, DATA
 from utils import read_pdf_text, chunk_by_tokens
 
 def embed_texts(client: OpenAI, texts):
@@ -9,22 +9,39 @@ def embed_texts(client: OpenAI, texts):
     return [e.embedding for e in resp.data]
 
 def main():
-    print(f"Reading PDF from: {PDF_PATH}")
-    pages = read_pdf_text(PDF_PATH)
+    # Process all PDFs in the data directory
+    pdf_files = [
+        DATA / "imirire.pdf",
+        DATA / "tubiteho.pdf"
+    ]
+    
     all_chunks = []
     meta = []
-    for page_no, txt in pages:
-        if not txt.strip():
+    
+    for pdf_path in pdf_files:
+        if not pdf_path.exists():
+            print(f"Warning: {pdf_path} not found, skipping...")
             continue
-        chunks = chunk_by_tokens(txt, CHUNK_SIZE, OVERLAP)
-        for ch in chunks:
-            all_chunks.append(ch)
-            meta.append({"page": page_no, "text": ch})
+            
+        print(f"\nReading PDF from: {pdf_path}")
+        pages = read_pdf_text(str(pdf_path))
+        
+        for page_no, txt in pages:
+            if not txt.strip():
+                continue
+            chunks = chunk_by_tokens(txt, CHUNK_SIZE, OVERLAP)
+            for ch in chunks:
+                all_chunks.append(ch)
+                meta.append({
+                    "page": page_no, 
+                    "text": ch,
+                    "source": pdf_path.name
+                })
 
     if not all_chunks:
-        raise RuntimeError("No text found in PDF.")
+        raise RuntimeError("No text found in any PDF.")
 
-    print(f"Embedding {len(all_chunks)} chunks with model {EMBED_MODEL} ...")
+    print(f"\nEmbedding {len(all_chunks)} chunks from {len(pdf_files)} PDFs with model {EMBED_MODEL} ...")
     client = OpenAI()
     embs = []
     B = 64
@@ -44,7 +61,8 @@ def main():
         for row in meta:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    print(f"Saved index to {FAISS_PATH} and meta to {META_PATH}")
+    print(f"\nSaved index to {FAISS_PATH} and meta to {META_PATH}")
+    print(f"Total chunks indexed: {len(all_chunks)}")
 
 if __name__ == "__main__":
     main()

@@ -175,11 +175,11 @@ def _parse_negation(text: str) -> tuple[str | None, str | None]:
 # ---------------- Intent detectors ----------------
 def _is_greeting(t: str) -> bool:
     t = t.lower()
-    return any(k in t for k in ["muraho","muraho neza","uraho","uraho neza","mwiriwe","wiriwe","mwaramutse","bwakeye","igicamunsi","bonjour","hello","salut","hi"])
+    return any(k in t for k in ["muraho","muraho neza","uraho","uraho neza","mwiriwe","wiriwe","mwaramutse","waramutse","bwakeye","igicamunsi","bonjour","hello","salut","hi","good morning","good evening"])
 
 def _is_status(t: str) -> bool:
     t = t.lower()
-    return any(k in t for k in ["amakuru yawe","amakuru yanyu","mumeze gute","umeze ute","ni iki gishya","imeze ite","bimeze gute"])
+    return any(k in t for k in ["amakuru yawe","amakuru yanyu","mumeze gute","umeze ute","umerewe ute","ni iki gishya","imeze ite","bimeze gute","how are you","comment allez-vous"])
 
 def _is_here(t: str) -> bool:
     t = t.lower()
@@ -227,6 +227,197 @@ def _is_affection(t: str) -> bool:
     t = t.lower()
     return any(k in t for k in ["ndakunda","ndagukunda","ndakunze","ndagukunda cyane","ndakunda cyane","nakwikundiye","nagukunze","ndabikunze"])
 
+# ---------------- Emotion detection ----------------
+def _detect_emotion(t: str) -> tuple[str | None, str | None]:
+    """
+    Detect user's emotional state and daily life expressions.
+    Returns: (emotion_type, intensity) or (None, None)
+    emotion_type: 'happy', 'sad', 'tired', 'sick', 'worried', 'stressed', 'excited', 
+                  'angry', 'frustrated', 'lonely', 'grateful', 'proud', 'confused',
+                  'bored', 'busy', 'hungry', 'sleepy', 'cold', 'hot', 'hurting'
+    intensity: 'mild', 'moderate', 'strong'
+    """
+    t = t.lower()
+    
+    # Happy emotions
+    if any(k in t for k in ["nishimiye","nishimishijwe","ndumva neza","neza cyane","nezerewe","ndanezerewe","happy","joyful","excited","am happy","i'm happy","ndabyishimiye","numvise neza","feeling good","great today"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","very","so","really"]) else 'moderate'
+        return ('happy', intensity)
+    
+    # Sad emotions
+    if any(k in t for k in ["ndababaye","ndumva nabi","ndagize agahinda","ndaryamye","sad","unhappy","am sad","i'm sad","ndumva mfite agahinda","mfite agahinda","numvise nabi","feeling down","depressed"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","bikabije","very","so","really"]) else 'moderate'
+        return ('sad', intensity)
+    
+    # Tired/exhausted
+    if any(k in t for k in ["ndananiwe","narananiwe","ndumva naniye","tired","exhausted","am tired","i'm tired","sinumva nfite imbaraga","ndaruhutse nabi","worn out","drained","so sleepy"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","cane","very","so"]) else 'moderate'
+        return ('tired', intensity)
+    
+    # Sick/unwell
+    if any(k in t for k in ["ndarwaye","ndumva ndarwaye","sinumva neza","sick","unwell","not feeling well","am sick","i'm sick","numvise ndarwaye","mfite uburwayi","feel ill","under the weather"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","bikabije","very","really"]) else 'moderate'
+        return ('sick', intensity)
+    
+    # Worried/anxious
+    if any(k in t for k in ["ndahangayitse","ndumva ndihangayikishijwe","worried","anxious","stressed","am worried","i'm worried","mfite impungenge","ndumva mpungenge","concerned","nervous"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","very","so"]) else 'moderate'
+        return ('worried', intensity)
+    
+    # Stressed/overwhelmed
+    if any(k in t for k in ["ndahagaritswe","stressed","overwhelmed","am stressed","ndumva nahagaritswe","birambaje","ndumva birambaje","can't cope","too much"]):
+        return ('stressed', 'moderate')
+    
+    # Excited/enthusiastic
+    if any(k in t for k in ["ndishimye cyane","excited","enthusiastic","am excited","ndabyishimiye","ndumva nshimishijwe","can't wait","looking forward"]):
+        return ('excited', 'moderate')
+    
+    # Angry/frustrated
+    if any(k in t for k in ["narakaye","ndarakaye","ndumva narakaye","angry","mad","frustrated","am angry","i'm angry","annoyed","irritated","pissed"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","very","so","really"]) else 'moderate'
+        return ('angry', intensity)
+    
+    # Lonely/isolated
+    if any(k in t for k in ["ndumva ndi wenyine","lonely","alone","isolated","am lonely","i'm lonely","feel alone","no one understands","ndi wenyine"]):
+        return ('lonely', 'moderate')
+    
+    # Grateful/thankful
+    if any(k in t for k in ["ndashimira","urakoze","grateful","thankful","appreciate","am grateful","blessed","fortunate"]):
+        return ('grateful', 'moderate')
+    
+    # Proud
+    if any(k in t for k in ["nishimiye","proud","am proud","i'm proud","feeling proud","accomplished"]):
+        return ('proud', 'moderate')
+    
+    # Confused/uncertain
+    if any(k in t for k in ["sinumva","sinzi","confused","don't understand","am confused","i'm confused","uncertain","not sure","ntabwo numva"]):
+        return ('confused', 'moderate')
+    
+    # Bored
+    if any(k in t for k in ["ndumva ndasamye","bored","am bored","i'm bored","nothing to do","ndasamye"]):
+        return ('bored', 'mild')
+    
+    # Busy/overwhelmed with tasks
+    if any(k in t for k in ["ndi mu mirimo myinshi","busy","am busy","i'm busy","so much to do","have a lot going on","ndi mu kazi kenshi"]):
+        return ('busy', 'moderate')
+    
+    # Hungry
+    if any(k in t for k in ["ndabawe","nshonje","hungry","am hungry","i'm hungry","need to eat","starving"]):
+        return ('hungry', 'mild')
+    
+    # Sleepy
+    if any(k in t for k in ["ndumva nsinziriye","sleepy","drowsy","need sleep","want to sleep","nsinziriye nabi"]):
+        return ('sleepy', 'mild')
+    
+    # Cold
+    if any(k in t for k in ["ndumva mfite imbeho","cold","am cold","i'm cold","freezing","mfite imbeho"]):
+        return ('cold', 'mild')
+    
+    # Hot
+    if any(k in t for k in ["ndumva nshyushye","hot","am hot","i'm hot","too warm","nshyushye cyane"]):
+        return ('hot', 'mild')
+    
+    # Pain/hurting
+    if any(k in t for k in ["ndumva mpababaye","in pain","hurting","am hurting","something hurts","mfite ububabare","mpababaye"]):
+        intensity = 'strong' if any(k in t for k in ["cyane","bikabije","very","so"]) else 'moderate'
+        return ('hurting', intensity)
+    
+    return (None, None)
+
+def _respond_to_emotion(emotion: str, intensity: str, name: str) -> str:
+    """
+    Generate empathetic response based on detected emotion.
+    Acknowledges the feeling warmly, then gently mentions parenting scope.
+    """
+    responses = {
+        'happy': [
+            f"Ndishimiye kumva ubyo, {name}! 😊 Iyo ushimye bizafasha no kwita neza ku bana. Ese hari icyo mfasha kubijanye n'uburere bw'abana (0-6 imyaka), inda, konsa, cyangwa ubuzima?",
+            f"Ni byiza kumva ubyo, {name}! 🌟 Umunezero ni ingenzi. Niba hari ikibazo cy'uburere bw'abana, inda, cyangwa ubuzima bw'umuryango—nkubwire.",
+            f"Ndabyishimiye nawe, {name}! Ese hari icyo ushaka kumenya kubijanye n'uburere bw'abana bato cyangwa ubuzima bw'ababyeyi?"
+        ],
+        'sad': [
+            f"Mbabarira kumva ko ufite agahinda, {name}. 💙 Igihe cyose gihangayikishije. Niba agahinda gawe kajyanye n'uburere bw'abana, inda, cyangwa ubuzima bw'umuryango—nkwifashije. Niba ari ikindi, vuga n'incuti cyangwa muganga.",
+            f"Numva ububabare bwawe, {name}. Rimwe na rimwe ababyeyi bahura n'ibihe bikomeye. Ese hari icyo nkugiriraho kubijanye n'uburere, ubuzima bw'umwana, cyangwa ubuzima bwawe nk'umubyeyi?",
+            f"Ndababaye kumva ibyo, {name}. 😔 Nkwifashije niba hari ikibazo cy'uburere bw'abana, inda, konsa, cyangwa ubuzima. Ariko niba ari ikindi hanze y'ibyo, baza muganga cyangwa incuti."
+        ],
+        'tired': [
+            f"Numva ko wananiwe, {name}. 😌 Kurera abana birananisha cyane! Ni ngombwa kuruhuka. Ese hari ikibazo cy'uburere cy'abana, cyangwa ushaka inama ku buryo bwo kwiruhukaho neza nk'umubyeyi?",
+            f"Ndabibona, {name}. Iyo wananiwe ni ngombwa kwitwararika. Nkugiriraho niba hari icyo ushaka kumenya kubijanye n'uburere bw'abana 0-6, inda, konsa, cyangwa ubuzima bw'ababyeyi.",
+            f"Ubu ruhuka gato, {name}! 😴 Ababyeyi bakenera kuruhuka. Niba hari ikibazo cy'uburere cyangwa ubuzima—nkubwire. Ariko ntibagirwe kwiruhukaho!"
+        ],
+        'sick': [
+            f"Mbabarira kumva ko utumvise neza, {name}. 🏥 Niba urwaye bikabije, jya kwa muganga mbere! Nyuma niba hari icyo nkugiriraho kubijanye n'ubuzima bw'umwana, inda, konsa—nkubwire. Ariko witondere wowe ubanza!",
+            f"Numva {name}. Ubuzima bwawe ni ingenzi! Jya kwa muganga niba urwaye cyane. Nkwifashije kubijanye n'uburere bw'abana cyangwa ubuzima bw'ababyeyi—ariko witondere mbere.",
+            f"Yooo {name}, iyo utumvise neza ni byiza kubanza kujya kwa muganga. 🩺 Nkugiriraho kubijanye n'ubuzima bw'abana, inda, konsa—ariko ubanza witondere!"
+        ],
+        'worried': [
+            f"Numva ko uhangayitse, {name}. 💭 Ni ngombwa kuvuga impungenge zawe. Ese uhangayitse kubijanye n'umwana wawe, inda, cyangwa ubuzima bw'umuryango? Nkubwire neza.",
+            f"Mbabarira ko uhangayitse, {name}. Niba impungenge zawe zijyanye n'uburere bw'abana (0-6), inda, konsa, cyangwa ubuzima bw'ababyeyi—nkwifashije. Niba ari ikindi, vuga n'incuti cyangwa umujyanama.",
+            f"Ndabibona {name}. Iyo uhangayitse ni byiza kuvuga. Nkugiriraho kubijanye n'uburere bw'abana, ubuzima bw'umwana, inda, konsa. Ariko niba ari ikindi kibazo—shakisha ubufasha buboneye."
+        ],
+        'stressed': [
+            f"Mbabarira kumva ko uhagaritswe, {name}. 😮‍💨 Ruhuka gato niba ubishobora. Niba hari icyo nkugiriraho kubijanye n'uburere, ubuzima bw'abana, konsa—nkubwire. Ariko witondere!",
+            f"Numva {name}. Kurera abana bishobora kuba bigoye, ariko uri gukora neza! Nkugiriraho kubijanye n'uburere bw'abana 0-6, inda, konsa. Ariko niba ari ikindi hanze y'ibyo—shakisha ubufasha.",
+            f"Ndabibona {name}. 💪 Ruhuka gato. Nkwifashije kubijanye n'uburere, ubuzima bw'abana, konsa—ariko ntibagirwe kwitwararika!"
+        ],
+        'excited': [
+            f"Ni byiza kumva ushimishijwe, {name}! ✨ Ese hari icyo ushaka kumenya kubijanye n'uburere bw'abana, inda, cyangwa konsa?",
+            f"Ndabyishimiye nawe, {name}! 🎉 Niba hari ikibazo cy'uburere bw'abana 0-6, ubuzima bw'ababyeyi—nkubwire.",
+        ],
+        'angry': [
+            f"Numva ko urakaye, {name}. 😤 Iyo urakaye ni ngombwa gutuza mbere yo gufata ibyemezo. Niba hari ikibazo cy'uburere bw'abana cyangwa ubuzima bw'umuryango—nkugiriraho. Ariko tuze mbere.",
+            f"Mbabarira ko urakaye, {name}. Pumura gato, maze niba hari icyo nkugiriraho kubijanye n'uburere bw'abana, inda, konsa—nkubwire. Ariko tuza mbere!",
+            f"Ndabibona {name}. 😠 Rimwe na rimwe ababyeyi bararakara—ni ibisanzwe. Nkwifashije kubijanye n'uburere bw'abana, ariko mbere yo kubindi pumura gato."
+        ],
+        'lonely': [
+            f"Mbabarira kumva ko wumva uri wenyine, {name}. 💙 Ababyeyi benshi bumva batyo. Shakisha abandi babandi, cyangwa vuga n'incuti. Nkugiriraho kubijanye n'uburere bw'abana 0-6, inda, konsa—ariko shakisha n'ubucuti!",
+            f"Numva {name}. Kwumva uri wenyine ni ibibazo. Gerageza kuvuga n'abantu, cyangwa kuja mu miryango y'ababyeyi. Nkwifashije kubijanye n'uburere, ariko shakisha n'ubucuti!",
+        ],
+        'grateful': [
+            f"Ni byiza kumva ubyo, {name}! 🙏 Kwishima ni ingenzi. Ese hari icyo ushaka kumenya kubijanye n'uburere bw'abana, inda, konsa?",
+            f"Urakoze kubivuga, {name}! ✨ Niba hari ikibazo cy'uburere cyangwa ubuzima bw'ababyeyi—nkubwire.",
+        ],
+        'proud': [
+            f"Ndakwishimira, {name}! 🌟 Ese hari icyo mfasha kubijanye n'uburere bw'abana bato cyangwa ubuzima bw'ababyeyi?",
+            f"Ni byiza kumva ubyo, {name}! 👏 Niba hari ikibazo cy'uburere—nkubwire.",
+        ],
+        'confused': [
+            f"Numva ko udashoboye kumva, {name}. 🤔 Niba ufite ikibazo cy'uburere bw'abana (0-6), inda, konsa, cyangwa ubuzima—nkubwire neza. Ariko niba ari ikindi kibazo—shakisha ubufasha buboneye.",
+            f"Mbabarira niba bidashobotse kumva, {name}. Nkwifashije kubijanye n'uburere, ubuzima bw'abana, inda, konsa—baza neza. Ariko niba ari ikindi hanze y'ibyo, shakisha umuntu ukwifashaho.",
+        ],
+        'bored': [
+            f"Ese udasamye, {name}? 😊 Niba ushaka kumenya kubijanye n'uburere bw'abana, imikino yo kwiga, cyangwa ibindi—nkubwire! Ariko niba ushaka ibindi bikorwa—shakisha imikino cyangwa ibyo gukora.",
+            f"Numva {name}. Niba hari icyo ushaka kumenya kubijanye n'uburere bw'abana bato, gukina kwiga—nkubwire!",
+        ],
+        'busy': [
+            f"Numva ko ufite imirimo myinshi, {name}! 💼 Iyo ufite umwanya, niba hari ikibazo cy'uburere bw'abana, inda, konsa—nkubwire. Ariko ruhuka niba ubishobora!",
+            f"Ndabibona {name}. Ababyeyi baba bagira imirimo myinshi! Niba ushaka ubufasha kubijanye n'uburere—baza. Ariko ntibagirwe kwitwararika.",
+        ],
+        'hungry': [
+            f"Rya mbere, {name}! 🍽️ Kurya ni ngombwa. Nyuma niba hari ikibazo cy'uburere bw'abana, imirire y'abana, konsa—nkubwire.",
+            f"Yoo {name}, jya urye! 😄 Imirire ni ingenzi. Niba ushaka kumenya kubijanye n'imirire y'abana bato—nkubwire nyuma!",
+        ],
+        'sleepy': [
+            f"Ruhuka gato, {name}! 😴 Iyo usinziriye nabi ni byiza kurara. Nyuma niba hari ikibazo cy'uburere bw'abana, ubuzima—nkubwire.",
+            f"Yoo {name}, jya uruhuke! Kuruhuka ni ngombwa. Niba ushaka kumenya kubijanye n'uburere—tubivugaho nyuma.",
+        ],
+        'cold': [
+            f"Mbabarira ko ufite imbeho, {name}! 🧥 Yambara neza. Niba hari ikibazo cy'uburere bw'abana, ubuzima—nkubwire.",
+            f"Numva {name}. Yambara neza kugirango udakomere! Niba ushaka kumenya kubijanye n'uburere—nkubwire.",
+        ],
+        'hot': [
+            f"Mbabarira ko ushyushye, {name}! ☀️ Nywa amazi menshi. Niba hari ikibazo cy'uburere bw'abana cyangwa ubuzima—nkubwire.",
+            f"Numva {name}. Pumura ahantu hakonje, unywe amazi! Niba ushaka ubufasha kubijanye n'uburere—nkubwire.",
+        ],
+        'hurting': [
+            f"Mbabarira ko upababaye, {name}. 😔 Niba ububabare bukabije, jya kwa muganga! Nkugiriraho kubijanye n'ubuzima bw'umwana, inda, konsa—ariko witondere wowe ubanza!",
+            f"Numva {name}. Niba ububabare bukabije cyane, shakisha muganga mbere! Nyuma nkwifashije kubijanye n'uburere niba ushaka.",
+        ],
+    }
+    
+    return _rnd(responses.get(emotion, []))
+
+
 # ---------------- Public entrypoint ----------------
 def handle_smalltalk(text: str) -> str | None:
     """
@@ -272,6 +463,11 @@ def handle_smalltalk(text: str) -> str | None:
     raw = (text or "").strip()
     low = _strip_fillers(text).lower()
     uname = _nm(_get_name())
+
+    # Emotion detection - check FIRST for emotional expressions
+    emotion, intensity = _detect_emotion(raw)
+    if emotion:
+        return _respond_to_emotion(emotion, intensity, uname)
 
     # Greeting
     if _is_greeting(low):
