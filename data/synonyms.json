@@ -34,7 +34,7 @@
   "muganga": ["kwa muganga", "doctor", "hospital", "clinic"],
   "ubujyanama": ["inama", "advice", "counseling", "guidance"],
   "ANC": ["kwisuzumisha", "prenatal", "antenatal"],
-  "kunyonsa": ["kurera ku mabere", "breastfeeding", "nursing"],
+  "konsa": ["konka ku mabere", "breastfeeding", "nursing"],
   "amavuta": ["oil", "fat", "ibinyobwa"],
   "isukari": ["sugar", "sweet", "byoshye"],
   "umunyu": ["salt", "salty"],
@@ -42,7 +42,13 @@
   "ubuzima": ["health", "wellness"],
   "kuvoma": ["washing", "cleaning", "intoki"],
   "guha abana imfashabere":["imfashabere"],
-  "guha umwana igihano":["guhana umwana","gukubita umwana","uko wahana umwana"]
+  "guha umwana igihano":["guhana umwana","gukubita umwana","uko wahana umwana"],
+  "umwana ufashwe n'igicuri":["umwana igicuri gifashe","uko wakwita ku mwana ufashwe n'igicuri","umwana wanjye agize igicuri","mugihe umuwana afashwe n'igicuri twamukorera iki"],
+  "ufashwe n'igicuri":["agize igicuri","arwaye igicuri","igicuri kiramufashe","igicuri kimutuye hasi","yikubise hasi kubera igicuri"],
+  "ubutabazi bw'ibanze":["icyo twakora","tubigenze gute","twamwitaho gute","nkore iki","namukorera iki","wangira iyihe nama","nakwitwara gute","ubufasha","ubufasha bw'ibanze"],
+  "amezi 6":["amezi atandatu"],
+  "imbogamizi":["inzitizi","ingorane"],
+  "kwigisha abana kubara":["kwigisha abana imibare"]
   
 
 }

@@ -19,5 +19,5 @@ SYN_PATH   = os.getenv("SYN_PATH")   or pick_path(DATA/"synonyms.json", DATA/"sy
 
 CHUNK_SIZE  = int(os.getenv("CHUNK_SIZE", "900"))
 OVERLAP     = int(os.getenv("OVERLAP",    "200"))
-TOP_K       = int(os.getenv("TOP_K",      "5"))
+TOP_K       = int(os.getenv("TOP_K",      "8"))
 SCORE_THRESHOLD = float(os.getenv("SCORE_THRESHOLD", "0.15"))
