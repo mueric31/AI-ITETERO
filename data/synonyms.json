@@ -1,5 +1,5 @@
 {
-  "umwana": ["abana", "uruhinja", "ingene"],
+  "umwana": ["abana", "uruhinja", "ingene","uruhinja", "umwana muto", "umwana wanjye"],
   "uburwayi": ["indwara", "ububabare", "uburire"],
   "ibiryo": ["indyo", "kurya", "ibyo kurya", "imirire"],
   "inkingo": ["urukingo", "gukingirwa", "vaccine"],
@@ -29,7 +29,7 @@
   "imirire mibi ku mugore utwite":["indyo mbi ku mugore utwite","indyo ituzuye ku mugore utwite","kurya nabi mu gihe utwite"],
 
   "kurira": ["kuboroga", "crying", "tears", "yarize","kwiriza","bakunda kurira"],
-  "guhana": ["uko wahana umwana", "punishment", "discipline", "guhanira"],
+  "guhana": ["wahana", "punishment", "discipline", "guhanira","twahana","yahana","bahana","nahana","guha igihano"],
   "kubyara": ["kubyarira", "delivery", "birth", "labor"],
   "muganga": ["kwa muganga", "doctor", "hospital", "clinic"],
   "ubujyanama": ["inama", "advice", "counseling", "guidance"],
@@ -43,12 +43,29 @@
   "kuvoma": ["washing", "cleaning", "intoki"],
   "guha abana imfashabere":["imfashabere"],
   "guha umwana igihano":["guhana umwana","gukubita umwana","uko wahana umwana"],
-  "umwana ufashwe n'igicuri":["umwana igicuri gifashe","uko wakwita ku mwana ufashwe n'igicuri","umwana wanjye agize igicuri","mugihe umuwana afashwe n'igicuri twamukorera iki"],
   "ufashwe n'igicuri":["agize igicuri","arwaye igicuri","igicuri kiramufashe","igicuri kimutuye hasi","yikubise hasi kubera igicuri"],
   "ubutabazi bw'ibanze":["icyo twakora","tubigenze gute","twamwitaho gute","nkore iki","namukorera iki","wangira iyihe nama","nakwitwara gute","ubufasha","ubufasha bw'ibanze"],
   "amezi 6":["amezi atandatu"],
   "imbogamizi":["inzitizi","ingorane"],
-  "kwigisha abana kubara":["kwigisha abana imibare"]
-  
-
+  "kwigisha abana kubara":["kwigisha abana imibare"],
+  "ubumuga": ["ufite ubumuga", "ufite ikibazo"],
+  "amarenga": ["ururimi rw'amarenga", "ibimenyetso"],
+   "kutavuga": ["ntavuga", "ubumuga bwo kutavuga","kutabasha kuvuga","ntashobora kuvuga"],
+  "gufasha umwana ufite ubumuga bwo kutavuga": [
+    "uko twafasha abana bafite ubumuga bwo kutavuga",
+    "uko nakwita ku mwana wanjye ufite ubumuga bwo kutavuga",
+    "uburyo bwo gufasha abana batavuga",
+    "ubufasha ku mwana utavuga"
+  ],
+  " Ubutabazi bw’ibanze":["icyo twakora","nkore iki","nabigenza nte","mbigenze gute","nakora iki","wakora iki","yakora iki","tubigenze gute","nkwirirye gukora iki","akwiriye gukora iki","ni ubuhe bufasha akeneye","ubufasha","ubufasha bw'ibanze","nakora iki byihutirwa","icyo wakora byihutirwa","icyo wakora ako kanya"],
+  "umwana ufashwe n'igicuri":["igicuri gifashe umwana","umwana urwaye igicuri","igicuri kiri gutigisa umwana","igicuri kiramufashe","yafashwe n'igicuri","umwana igicuri gifashe","uko wakwita ku mwana ufashwe n'igicuri","umwana wanjye agize igicuri","mugihe umuwana afashwe n'igicuri twamukorera iki"],
+  "ikintu cyakomerekeje ijisho ry'umwana":["cyatokoje","gutokozwa","imiyenzi igiye mu jisho","imikungugu yagiye mu ijisho","watokojwe","ibintu bigiye mujisho","bitarukiye mu jisho","ijisho riratokojwe","ikintu kigiye mu jisho"],
+  "umwana wakomeretse":["abana bakomeretse","umwana arakomeretse","yakomeretse","arakomeretse"],
+  "Ubutabazi bw’ibanze ku mwana uhiye":["umwana arahiye","amavuta aramutwitse","aguye mu mbabura","igikoma kiramutwitse","amata aramutwitse","arahiye","agize ubushye","ubushye","umuriro uramutwitse","gas iramutwitse","ibiryo biramutwitse","yahiye umubiri wose","umwana wanjye arhiye","imbabura iramwokeje","guhangana n'ubushye","ahiye","yahiye","bahiye"],
+  "umwana urumwe n’inzoka":["inzoka iramuciriye","umwana inzoka iramurumye","arumwe n'inzoka","inzoka iriye umwana","inzoka iramurumye","urumwe n'inzoka","inzoka iriye umwana","inzoka yamuciriye"],
+"Ubutabazi bw’ibanze buhahabwa umwana urumwe n’inyamaswa":["umwana urumwe n'nyamanswa","inyamanswa iramurumye","igisimba kiramurumye","igikoko kiramurumye", "imbwa iramuriye","imbwa iramurumye"],
+"Ubutabazi bw’ibanze buhabwa umwana urimo kuva imyuna":["umwana uri kuva imyuna","kuva imyuna","gukanuka","yakanutse","kuva amaraso mu mazuru","kugira imyuna","afite imyuna","yagize imyuna","akunda kugira imyuna"],
+"Ubutabazi bw’ibanze buhabwa umwana urimo kuva amaraso cyane":["umwana urimo kuva amaraso cyane","umwana wanjye arakomeretse none ari kuva cyane","umwana wanjye ari kuva cyane","umwana wakomeretse cyane","umwana wanjye yakomeretse cyane","umwana wanjye yakomeretse cyane none ari kuva cyane","umwana ari kuva amaraso cyane","umwana wanjye ari gutakaza amaraso cyane","yakomeretse cyane kandi ari kuva amaraso menshi"],
+" Gupima ubushyuhe bw’umwana ukoresheje igipimo cy’umuriro":["uko wapima umwana umuriro","gupima umuriro umwana afite","ni gute bakoresha igipimo gipima umuriro"],
+"Gufasha Umwana ufite umuriro umwinshi":["ubufasha twaha umwana ufite umuriro mwinshi","umwana wanjye afite umuriro mwinshi nkore iki","ubufasha bw'ibanze naha umwana ugize umuriro","icyo umubyeyi yakora mu gihe umwana afite umuriro mwinshi"]
 }
