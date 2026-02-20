@@ -48,7 +48,6 @@ def load_pdf_chunks():
         for page_no, txt in pages:
             if not txt.strip():
                 continue
-            # Token-based chunking
             chunks = chunk_by_tokens(txt, chunk_size=900, overlap=200)
             for ch in chunks:
                 if ch.strip():
@@ -65,7 +64,6 @@ def load_pdf_chunks():
 # Ask OpenAI in batches
 # ---------------------------
 def ask_openai(chunks, question, client):
-    # Split chunks into smaller batches
     answers = []
     for i in range(0, len(chunks), MAX_CHUNK_BATCH):
         batch_chunks = chunks[i:i+MAX_CHUNK_BATCH]
@@ -97,18 +95,25 @@ def ask_openai(chunks, question, client):
     if not answers:
         return FALLBACK
 
-    # Combine answers from multiple batches (take the longest / most detailed)
-    final_answer = max(answers, key=len)
-    return final_answer
+    return max(answers, key=len)
 
 # ---------------------------
-# Main
+# Public function for FastAPI
+# ---------------------------
+def get_response(question: str):
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key) if api_key else OpenAI()
+    chunks = load_pdf_chunks()
+    return ask_openai(chunks, question, client)
+
+# ---------------------------
+# CLI interface
 # ---------------------------
 def main():
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=api_key) if api_key else OpenAI()
-
     chunks = load_pdf_chunks()
 
     print("Andika ikibazo cyawe (Ctrl+C gusohoka):")
