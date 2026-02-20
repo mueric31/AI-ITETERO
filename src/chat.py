@@ -1,233 +1,129 @@
-import os, json, sys, re
-import faiss
-import numpy as np
-from typing import List, Dict
-from dotenv import load_dotenv
+import os
+import sys
+import json
+from pathlib import Path
 from openai import OpenAI
+from dotenv import load_dotenv
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Add project root to sys.path if needed
+ROOT = Path(__file__).resolve().parent.parent
 if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
+    sys.path.insert(0, str(ROOT))
 
-from config import FAISS_PATH, META_PATH, SYN_PATH, EMBED_MODEL, CHAT_MODEL, TOP_K, SCORE_THRESHOLD
-from src.greetings_smart import handle_smalltalk
+from utils import read_pdf_text, chunk_by_tokens
+from config import DATA, CHAT_MODEL, EMBED_MODEL
 
+# ---------------------------
+# Constants
+# ---------------------------
 FALLBACK = "Mbabarira, nta makuru mfite kuri iyi ngingo."
-
-
-# ---------------------------
-# META & SYNONYMS LOADING
-# ---------------------------
-def load_meta(meta_path: str) -> List[Dict]:
-    rows = []
-    with open(meta_path, "r", encoding="utf-8") as f:
-        for line in f:
-            rows.append(json.loads(line))
-    return rows
-
-
-def load_synonyms(path: str) -> Dict[str, list]:
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            clean = {}
-            for k, v in (data or {}).items():
-                if isinstance(v, list):
-                    clean[str(k)] = [str(x) for x in v]
-            return clean
-    except Exception:
-        return {}
-
+MAX_CHUNK_BATCH = 50  # number of chunks to send to OpenAI per request
 
 # ---------------------------
-# CLEAN KINYARWANDA QUERY
+# Load PDFs and create chunks
 # ---------------------------
-def _clean_kiny_query(q: str) -> str:
-    ql = q.lower().strip()
-    fillers = [r"^ese\s+", r"^none\s+se\s+", r"^none\s+", r"^mbese\s+", r"^ni\s+iki\s+", r"^niki\s+"]
-    for pat in fillers:
-        ql = re.sub(pat, "", ql)
-    return re.sub(r"\s+", " ", ql).strip()
-
-
-def expand_query_with_synonyms(q: str, syn: Dict[str, list]) -> str:
-    if not syn:
-        return q
-    q_low = q.lower()
-    additions = set()
-    for key, candidates in syn.items():
-        key_l = key.lower()
-        if key_l in q_low:
-            for c in candidates:
-                c = c.lower().strip()
-                if c:
-                    additions.add(c)
-        for c in candidates:
-            c_l = c.lower().strip()
-            if c_l and c_l in q_low:
-                additions.add(key_l)
-    if additions:
-        return q + " | " + " ".join(sorted(additions))
-    return q
-
-
-# ---------------------------
-# EMBEDDINGS & RETRIEVAL
-# ---------------------------
-def embed_query(client: OpenAI, text: str) -> np.ndarray:
-    emb = client.embeddings.create(model=EMBED_MODEL, input=[text]).data[0].embedding
-    x = np.array(emb, dtype="float32")
-    faiss.normalize_L2(x.reshape(1, -1))
-    return x
-
-
-def _keyword_candidates(meta_rows: List[Dict], query: str, syn: Dict[str, list], topn: int = 5):
-    q = _clean_kiny_query(query).lower()
-    tokens = [t for t in re.split(r"[^\w'']+", q) if len(t) > 2]
-    extra = set()
-    for key, vals in (syn or {}).items():
-        key_l = key.lower()
-        if key_l in q:
-            for v in vals:
-                v = str(v).lower().strip()
-                if v and len(v) > 2:
-                    extra.add(v)
-        for v in vals:
-            v_l = str(v).lower().strip()
-            if v_l and v_l in q and len(v_l) > 2:
-                extra.add(key_l)
-    vocab = set(tokens) | extra
-    if not vocab:
-        return []
-    scored = []
-    for row in meta_rows:
-        text = str(row.get("text", "")).lower()
-        score = sum(text.count(term) for term in vocab)
-        if score > 0:
-            scored.append((score, row))
-    scored.sort(key=lambda x: x[0], reverse=True)
-    return [r for _, r in scored[:topn]]
-
-
-def retrieve(client: OpenAI, index, meta_rows: List[Dict], question: str, syn: Dict[str, list]):
-    base_q = _clean_kiny_query(question)
-    qx = expand_query_with_synonyms(base_q, syn)
-    qvec = embed_query(client, qx)
-
-    scores, idxs = index.search(qvec.reshape(1, -1), TOP_K)
-    scores = scores[0].tolist()
-    idxs = idxs[0].tolist()
-
-    pairs = [(s, meta_rows[i]) for s, i in zip(scores, idxs) if i != -1]
-    good = [m for (s, m) in pairs if s >= SCORE_THRESHOLD]
-
-    if not good:
-        kw = _keyword_candidates(meta_rows, question, syn, topn=5)
-        if kw:
-            good = kw[:3]
-
-    return good, scores[:len(good)]
-
-
-def format_context(chunks: List[Dict]) -> str:
-    out = []
-    for i, ch in enumerate(chunks, 1):
-        out.append(f"[Igice {i} | Page {ch.get('page','?')}] {ch['text']}")
-    return "\n\n".join(out)
-
-
-# ---------------------------
-# LLM WITH CONTEXT (PARAPHRASE)
-# ---------------------------
-def ask_llm_with_context(client: OpenAI, context: str, question: str) -> str:
-    system = (
-        "Uri umufasha uvuga Kinyarwanda. Subiza ikibazo ukoresheje amakuru aboneka mu CONTEXT gusa.\n"
-        f"Nurangiza, ntukongeremo andi makuru atari mu CONTEXT. "
-        f"Niba nta gisubizo gihari, subiza '{FALLBACK}'."
-    )
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "user", "content": f"CONTEXT:\n{context}\n\nIKIBAZO:\n{question}"},
+def load_pdf_chunks():
+    pdf_files = [
+        DATA / "imirire.pdf",
+        DATA / "tubiteho.pdf",
+        DATA / "BROCHURE_IMBONEZAMIKURIRE_Y_ABANA_BATO (1).pdf",
+        DATA / "6.1 First aid PG DRAFT 5 (V14.10.22) Kinyarwanda.pdf",
+        DATA / "all.pdf",
+        DATA / "3.1 Play PG DRAFT 5 (V14.10.22) Kinyarwanda.pdf",
+        DATA / "3.2 Play BR DRAFT 4 (V26.04.22) Kinyarwanda.pdf",
+        DATA / "4.1 Prenatal newborn postnatal care PG DRAFT 5 (V14.10.22) Kinyarwanda.pdf",
+        DATA / "4.2 Prenatal newborn postnatal care BR DRAFT 5 (V14.10.22) Kinyarwanda.pdf"
     ]
-    resp = client.chat.completions.create(
-        model=CHAT_MODEL,
-        messages=messages,
-        temperature=0.2,
-    )
-    return resp.choices[0].message.content.strip()
 
+    all_chunks = []
 
-# ---------------------------
-# INIT & SINGLETON
-# ---------------------------
-_INDEX = None
-_META_ROWS = None
-_SYNONYMS = None
-_CLIENT = None
+    print("📚 Loading PDFs and preparing skills data...")
 
+    for pdf_path in pdf_files:
+        if not pdf_path.exists():
+            print(f"⚠ {pdf_path} not found, skipping...")
+            continue
 
-def ensure_index_loaded(path: str):
-    if not os.path.exists(path):
-        raise SystemExit(f"FAISS index not found at {path}. Run build_index.py first.")
-    return faiss.read_index(path)
+        pages = read_pdf_text(str(pdf_path))
+        for page_no, txt in pages:
+            if not txt.strip():
+                continue
+            # Token-based chunking
+            chunks = chunk_by_tokens(txt, chunk_size=900, overlap=200)
+            for ch in chunks:
+                if ch.strip():
+                    all_chunks.append({
+                        "source": pdf_path.name,
+                        "page": page_no,
+                        "text": ch
+                    })
 
-
-def _init_once():
-    global _INDEX, _META_ROWS, _SYNONYMS, _CLIENT
-    if _CLIENT is None:
-        load_dotenv()
-        api_key = os.getenv("OPENAI_API_KEY")
-        _CLIENT = OpenAI(api_key=api_key) if api_key else OpenAI()
-    if _INDEX is None:
-        _INDEX = ensure_index_loaded(FAISS_PATH)
-    if _META_ROWS is None:
-        _META_ROWS = load_meta(META_PATH)
-    if _SYNONYMS is None:
-        _SYNONYMS = load_synonyms(SYN_PATH)
-
+    print(f"✅ Loaded {len(all_chunks)} chunks from PDFs.\n")
+    return all_chunks
 
 # ---------------------------
-# MAIN RESPONSE FUNCTION
+# Ask OpenAI in batches
 # ---------------------------
-def get_response(question: str) -> str:
-    _init_once()
+def ask_openai(chunks, question, client):
+    # Split chunks into smaller batches
+    answers = []
+    for i in range(0, len(chunks), MAX_CHUNK_BATCH):
+        batch_chunks = chunks[i:i+MAX_CHUNK_BATCH]
+        context = "\n\n".join([f"[Page {c['page']}] {c['text']}" for c in batch_chunks])
 
-    # 1️⃣ Check small talk
-    small = handle_smalltalk(_CLIENT, question)
-    if small is not None:
-        return small
+        system_prompt = (
+            "Uri umufasha uvuga Kinyarwanda. Subiza ikibazo ukoresheje amakuru aboneka muri CONTEXT gusa.\n"
+            "Nurangiza, ntukongeremo andi makuru atari mu CONTEXT.\n"
+            f"Niba nta gisubizo gihari, subiza '{FALLBACK}'."
+        )
 
-    # 2️⃣ Retrieve from PDFs
-    chunks, scores = retrieve(_CLIENT, _INDEX, _META_ROWS, question, _SYNONYMS)
-    if chunks:
-        context = format_context(chunks)
-        answer = ask_llm_with_context(_CLIENT, context, question)
-        if answer and answer != FALLBACK and len(answer.strip()) > 20:
-            return answer
+        user_prompt = f"CONTEXT:\n{context}\n\nIKIBAZO:\n{question}"
 
-    # 3️⃣ No relevant content found → strict fallback
-    return FALLBACK
+        try:
+            resp = client.chat.completions.create(
+                model=CHAT_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.2,
+            )
+            answer_text = resp.choices[0].message.content.strip()
+            if answer_text and answer_text != FALLBACK:
+                answers.append(answer_text)
+        except Exception as e:
+            print(f"⚠ OpenAI error: {e}")
 
+    if not answers:
+        return FALLBACK
+
+    # Combine answers from multiple batches (take the longest / most detailed)
+    final_answer = max(answers, key=len)
+    return final_answer
 
 # ---------------------------
-# CLI
+# Main
 # ---------------------------
 def main():
-    _init_once()
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key) if api_key else OpenAI()
 
-    if len(sys.argv) > 1:
-        question = " ".join(sys.argv[1:]).strip()
-        print(get_response(question) if question else FALLBACK)
-    else:
-        print("Andika ikibazo cyawe (Ctrl+C gusohoka):")
-        while True:
-            try:
-                question = input(">> ").strip()
-            except (EOFError, KeyboardInterrupt):
-                print("\nMurakoze!")
-                break
-            print(get_response(question) if question else FALLBACK)
+    chunks = load_pdf_chunks()
 
+    print("Andika ikibazo cyawe (Ctrl+C gusohoka):")
+    while True:
+        try:
+            question = input(">> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nMurakoze!")
+            break
+
+        if not question:
+            continue
+
+        answer = ask_openai(chunks, question, client)
+        print(answer + "\n")
 
 if __name__ == "__main__":
     main()
