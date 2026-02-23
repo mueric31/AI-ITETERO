@@ -1,71 +1,302 @@
 {
-  "umwana": ["abana", "uruhinja", "ingene","uruhinja", "umwana muto", "umwana wanjye"],
-  "uburwayi": ["indwara", "ububabare", "uburire"],
-  "ibiryo": ["indyo", "kurya", "ibyo kurya", "imirire"],
-  "inkingo": ["urukingo", "gukingirwa", "vaccine"],
-  "isuku": ["isukuye", "kugeza", "isukura"],
-  "amazi": ["amazi meza", "amazi yera", "water"],
-  "impiswi": ["umuriro", "gutwika"],
-  "isereri": ["guhutaza", "gusiba"],
-  "umusarane": ["isuku y'amenyo", "isuku y'umubiri"],
-  "intoki": ["kuvoma", "gusambanya"],
-  "uburere": ["kurera", "kwita ku bana", "kubona"],
-  "se": ["data", "papa", "so"],
-  "mama": ["nyina", "nyoko", "mother"],
-  "ababyeyi": ["data na mama", "parents"],
-  "gukina": ["imikino", "playing", "games"],
-  "kwiga": ["amashuri", "education", "learning"],
-  "ikoranabuhanga": ["technology", "murandasi", "telefone", "internet"],
-  "umutekano": ["kurinda", "safety", "security"],
-  
-  "umugore": ["abagore", "umubyeyi", "mama", "nyina"],
-  "umugabo": ["abagabo", "data", "se", "papa"],
-  "utwite": ["inda", "gutwita", "umubyeyi utwite", "pregnancy", "pregnant","ntwite","umugore wanjye aratwite","atwite","umugore utwite"],
-  "amabere umugore utwite": ["amabere y'umugore utwite"],
-  "umugore utwite afite isesemi":["umugore wanjye ko afite isesemi","umugore wanjye yagize isesemi","mugihe umugore afite isesemi"],
-  "kubona imihango": ["kugira imihango", "kuzana imihango", "yagize imihango", "agize imihango"],
-  "gutinda kw'imihango":["kubura imihango","kutabona imihango", "yabuze imihango", "ntari kubona imihango", "imihango yabuze","ntari kubona imihango","kubura kw'imihango","imihango yatinze","sindi kubona imihango","nabuze imihango","yabuze imihango","yatinze kujya mu mihango","umugore yabuze imihango"],
-  "Imirire myiza y’umugore utwite":["ibyo kurya wagaburira umugore utwite"],
-  "imirire mibi ku mugore utwite":["indyo mbi ku mugore utwite","indyo ituzuye ku mugore utwite","kurya nabi mu gihe utwite"],
-
-  "kurira": ["kuboroga", "crying", "tears", "yarize","kwiriza","bakunda kurira"],
-  "guhana": ["wahana", "punishment", "discipline", "guhanira","twahana","yahana","bahana","nahana","guha igihano"],
-  "kubyara": ["kubyarira", "delivery", "birth", "labor"],
-  "muganga": ["kwa muganga", "doctor", "hospital", "clinic"],
-  "ubujyanama": ["inama", "advice", "counseling", "guidance"],
-  "ANC": ["kwisuzumisha", "prenatal", "antenatal"],
-  "konsa": ["konka ku mabere", "breastfeeding", "nursing"],
-  "amavuta": ["oil", "fat", "ibinyobwa"],
-  "isukari": ["sugar", "sweet", "byoshye"],
-  "umunyu": ["salt", "salty"],
-  "vitamini": ["vitamin", "nutrients"],
-  "ubuzima": ["health", "wellness"],
-  "kuvoma": ["washing", "cleaning", "intoki"],
-  "guha abana imfashabere":["imfashabere"],
-  "guha umwana igihano":["guhana umwana","gukubita umwana","uko wahana umwana"],
-  "ufashwe n'igicuri":["agize igicuri","arwaye igicuri","igicuri kiramufashe","igicuri kimutuye hasi","yikubise hasi kubera igicuri"],
-  "ubutabazi bw'ibanze":["icyo twakora","tubigenze gute","twamwitaho gute","nkore iki","namukorera iki","wangira iyihe nama","nakwitwara gute","ubufasha","ubufasha bw'ibanze"],
-  "amezi 6":["amezi atandatu"],
-  "imbogamizi":["inzitizi","ingorane"],
-  "kwigisha abana kubara":["kwigisha abana imibare"],
-  "ubumuga": ["ufite ubumuga", "ufite ikibazo"],
-  "amarenga": ["ururimi rw'amarenga", "ibimenyetso"],
-   "kutavuga": ["ntavuga", "ubumuga bwo kutavuga","kutabasha kuvuga","ntashobora kuvuga"],
-  "gufasha umwana ufite ubumuga bwo kutavuga": [
-    "uko twafasha abana bafite ubumuga bwo kutavuga",
-    "uko nakwita ku mwana wanjye ufite ubumuga bwo kutavuga",
-    "uburyo bwo gufasha abana batavuga",
-    "ubufasha ku mwana utavuga"
+  "umwana": [
+    "umwana"
   ],
-  " Ubutabazi bw’ibanze":["icyo twakora","nkore iki","nabigenza nte","mbigenze gute","nakora iki","wakora iki","yakora iki","tubigenze gute","nkwirirye gukora iki","akwiriye gukora iki","ni ubuhe bufasha akeneye","ubufasha","ubufasha bw'ibanze","nakora iki byihutirwa","icyo wakora byihutirwa","icyo wakora ako kanya"],
-  "umwana ufashwe n'igicuri":["igicuri gifashe umwana","umwana urwaye igicuri","igicuri kiri gutigisa umwana","igicuri kiramufashe","yafashwe n'igicuri","umwana igicuri gifashe","uko wakwita ku mwana ufashwe n'igicuri","umwana wanjye agize igicuri","mugihe umuwana afashwe n'igicuri twamukorera iki"],
-  "ikintu cyakomerekeje ijisho ry'umwana":["cyatokoje","gutokozwa","imiyenzi igiye mu jisho","imikungugu yagiye mu ijisho","watokojwe","ibintu bigiye mujisho","bitarukiye mu jisho","ijisho riratokojwe","ikintu kigiye mu jisho"],
-  "umwana wakomeretse":["abana bakomeretse","umwana arakomeretse","yakomeretse","arakomeretse"],
-  "Ubutabazi bw’ibanze ku mwana uhiye":["umwana arahiye","amavuta aramutwitse","aguye mu mbabura","igikoma kiramutwitse","amata aramutwitse","arahiye","agize ubushye","ubushye","umuriro uramutwitse","gas iramutwitse","ibiryo biramutwitse","yahiye umubiri wose","umwana wanjye arhiye","imbabura iramwokeje","guhangana n'ubushye","ahiye","yahiye","bahiye"],
-  "umwana urumwe n’inzoka":["inzoka iramuciriye","umwana inzoka iramurumye","arumwe n'inzoka","inzoka iriye umwana","inzoka iramurumye","urumwe n'inzoka","inzoka iriye umwana","inzoka yamuciriye"],
-"Ubutabazi bw’ibanze buhahabwa umwana urumwe n’inyamaswa":["umwana urumwe n'nyamanswa","inyamanswa iramurumye","igisimba kiramurumye","igikoko kiramurumye", "imbwa iramuriye","imbwa iramurumye"],
-"Ubutabazi bw’ibanze buhabwa umwana urimo kuva imyuna":["umwana uri kuva imyuna","kuva imyuna","gukanuka","yakanutse","kuva amaraso mu mazuru","kugira imyuna","afite imyuna","yagize imyuna","akunda kugira imyuna"],
-"Ubutabazi bw’ibanze buhabwa umwana urimo kuva amaraso cyane":["umwana urimo kuva amaraso cyane","umwana wanjye arakomeretse none ari kuva cyane","umwana wanjye ari kuva cyane","umwana wakomeretse cyane","umwana wanjye yakomeretse cyane","umwana wanjye yakomeretse cyane none ari kuva cyane","umwana ari kuva amaraso cyane","umwana wanjye ari gutakaza amaraso cyane","yakomeretse cyane kandi ari kuva amaraso menshi"],
-" Gupima ubushyuhe bw’umwana ukoresheje igipimo cy’umuriro":["uko wapima umwana umuriro","gupima umuriro umwana afite","ni gute bakoresha igipimo gipima umuriro"],
-"Gufasha Umwana ufite umuriro umwinshi":["ubufasha twaha umwana ufite umuriro mwinshi","umwana wanjye afite umuriro mwinshi nkore iki","ubufasha bw'ibanze naha umwana ugize umuriro","icyo umubyeyi yakora mu gihe umwana afite umuriro mwinshi"]
+  "cyangwa": [
+    "cyangwa"
+  ],
+  "ababyeyi": [
+    "ababyeyi"
+  ],
+  "abana": [
+    "abana"
+  ],
+  "igihe": [
+    "igihe"
+  ],
+  "kandi": [
+    "kandi"
+  ],
+  "uko": [
+    "uko"
+  ],
+  "neza": [
+    "neza"
+  ],
+  "wawe": [
+    "wawe"
+  ],
+  "muganga": [
+    "muganga"
+  ],
+  "uruhinja": [
+    "uruhinja"
+  ],
+  "niba": [
+    "niba"
+  ],
+  "iminota": [
+    "iminota"
+  ],
+  "cyane": [
+    "cyane"
+  ],
+  "kugira": [
+    "kugira"
+  ],
+  "ibyo": [
+    "ibyo"
+  ],
+  "ari": [
+    "ari"
+  ],
+  "gihe": [
+    "gihe"
+  ],
+  "ndetse": [
+    "ndetse"
+  ],
+  "mwana": [
+    "mwana"
+  ],
+  "imfashanyigisho": [
+    "imfashanyigisho"
+  ],
+  "ngo": [
+    "ngo"
+  ],
+  "bwo": [
+    "bwo"
+  ],
+  "kwa": [
+    "kwa"
+  ],
+  "umubyeyi": [
+    "umubyeyi"
+  ],
+  "iyo": [
+    "iyo"
+  ],
+  "icyo": [
+    "icyo"
+  ],
+  "amazi": [
+    "amazi"
+  ],
+  "kuva": [
+    "kuva"
+  ],
+  "ubumuga": [
+    "ubumuga"
+  ],
+  "mbere": [
+    "mbere"
+  ],
+  "nyuma": [
+    "nyuma"
+  ],
+  "uburyo": [
+    "uburyo"
+  ],
+  "utwite": [
+    "utwite"
+  ],
+  "kuba": [
+    "kuba"
+  ],
+  "buryo": [
+    "buryo"
+  ],
+  "aho": [
+    "aho"
+  ],
+  "gukina": [
+    "gukina"
+  ],
+  "amaraso": [
+    "amaraso"
+  ],
+  "cyo": [
+    "cyo"
+  ],
+  "inyigisho": [
+    "inyigisho"
+  ],
+  "hari": [
+    "hari"
+  ],
+  "gukora": [
+    "gukora"
+  ],
+  "inda": [
+    "inda"
+  ],
+  "buri": [
+    "buri"
+  ],
+  "ubwonko": [
+    "ubwonko"
+  ],
+  "ashobora": [
+    "ashobora"
+  ],
+  "munsi": [
+    "munsi"
+  ],
+  "kugirango": [
+    "kugirango"
+  ],
+  "byo": [
+    "byo"
+  ],
+  "kuko": [
+    "kuko"
+  ],
+  "ufite": [
+    "ufite"
+  ],
+  "muri": [
+    "muri"
+  ],
+  "kubyara": [
+    "kubyara"
+  ],
+  "ibanze": [
+    "ibanze"
+  ],
+  "umugore": [
+    "umugore"
+  ],
+  "umubiri": [
+    "umubiri"
+  ],
+  "ubuzima": [
+    "ubuzima"
+  ],
+  "bishobora": [
+    "bishobora"
+  ],
+  "kuri": [
+    "kuri"
+  ],
+  "nda": [
+    "nda"
+  ],
+  "indwara": [
+    "indwara"
+  ],
+  "ushobora": [
+    "ushobora"
+  ],
+  "kwita": [
+    "kwita"
+  ],
+  "ikintu": [
+    "ikintu"
+  ],
+  "ibindi": [
+    "ibindi"
+  ],
+  "ubutabazi": [
+    "ubutabazi"
+  ],
+  "ariko": [
+    "ariko"
+  ],
+  "kumenya": [
+    "kumenya"
+  ],
+  "impamvu": [
+    "impamvu"
+  ],
+  "ibibazo": [
+    "ibibazo"
+  ],
+  "bagomba": [
+    "bagomba"
+  ],
+  "afite": [
+    "afite"
+  ],
+  "rugo": [
+    "rugo"
+  ],
+  "abandi": [
+    "abandi"
+  ],
+  "ibintu": [
+    "ibintu"
+  ],
+  "kugeza": [
+    "kugeza"
+  ],
+  "iyi": [
+    "iyi"
+  ],
+  "ngombwa": [
+    "ngombwa"
+  ],
+  "iki": [
+    "iki"
+  ],
+  "uri": [
+    "uri"
+  ],
+  "kuvuka": [
+    "kuvuka"
+  ],
+  "ese": [
+    "ese"
+  ],
+  "bana": [
+    "bana"
+  ],
+  "kare": [
+    "kare"
+  ],
+  "wakora": [
+    "wakora"
+  ],
+  "noneho": [
+    "noneho"
+  ],
+  "nta": [
+    "nta"
+  ],
+  "intambwe": [
+    "intambwe"
+  ],
+  "bafite": [
+    "bafite"
+  ],
+  "kwiga": [
+    "kwiga"
+  ],
+  "isuku": [
+    "isuku"
+  ],
+  "ibimenyetso": [
+    "ibimenyetso"
+  ],
+  "kubura": [
+    "kubura"
+  ],
+  "kumva": [
+    "kumva"
+  ],
+  "urugero": [
+    "urugero"
+  ],
+  "konsa": [
+    "konsa"
+  ],
+  "impinja": [
+    "impinja"
+  ],
+  "intoki": [
+    "intoki"
+  ],
+  "amashereka": [
+    "amashereka"
+  ]
 }
