@@ -15,17 +15,18 @@ if ROOT not in sys.path:
 
 from utils import read_pdf_text, chunk_by_tokens
 from config import DATA, CHAT_MODEL, EMBED_MODEL
+from greetings import is_small_talk, get_smalltalk_response  # ← conversational layer
 
 # ---------------------------
 # Constants
 # ---------------------------
-FALLBACK         = "Mbabarira, nta makuru mfite kuri iyi ngingo."
-MAX_CHUNK_BATCH  = 30   # smaller batches = fewer tokens per call = fewer 429s
-MAX_WORKERS      = 2    # only 2 parallel calls to stay safely under 200k TPM
+FALLBACK         = "Munyihanganire, nta makuru mfite kuri iyi ngingo."
+MAX_CHUNK_BATCH  = 30
+MAX_WORKERS      = 2
 RETRY_ATTEMPTS   = 5
 RETRY_BASE_WAIT  = 2.0
-MIN_SCORE        = 0.08  # minimum relevance score to include a chunk at all
-TOP_CHUNKS       = 90   # only send the top-N most relevant chunks to OpenAI
+MIN_SCORE        = 0.08
+TOP_CHUNKS       = 90
 
 # ---------------------------
 # In-memory chunk cache
@@ -78,11 +79,6 @@ def load_pdf_chunks():
 # ---------------------------
 
 def expand_question(question: str, client: OpenAI) -> list[str]:
-    """
-    Ask OpenAI to extract and expand the core medical keywords from the question.
-    Returns a flat list of Kinyarwanda keywords covering synonyms, stems, and
-    related medical terms — so chunk scoring bridges spelling/phrasing gaps.
-    """
     prompt = (
         "Reba ikibazo cy'umuturage mu Kinyarwanda hepfo.\n"
         "Andika urutonde rw'amagambo y'ingenzi (keywords) 10-20 ajyanye n'ikibazo, "
@@ -104,16 +100,14 @@ def expand_question(question: str, client: OpenAI) -> list[str]:
             for w in raw.splitlines()
             if w.strip() and len(w.strip()) > 2
         ]
-        # Always include original question tokens too
         original_tokens = [
             t.lower().strip(".,?!:;")
             for t in question.split()
             if len(t) > 2
         ]
-        all_keywords = list(dict.fromkeys(original_tokens + keywords))  # dedupe, keep order
+        all_keywords = list(dict.fromkeys(original_tokens + keywords))
         return all_keywords
     except Exception:
-        # fallback: just use original question tokens
         return [t.lower().strip(".,?!:;") for t in question.split() if len(t) > 2]
 
 
@@ -129,13 +123,8 @@ STOP_WORDS = {
 }
 
 def _score_chunk(chunk_text: str, keywords: list[str]) -> float:
-    """
-    Score a chunk by how many keywords appear in it.
-    Uses both exact match and 5-char stem match for spelling tolerance.
-    """
     if not keywords:
         return 0.0
-
     chunk_lower = chunk_text.lower()
     hits = 0.0
     for kw in keywords:
@@ -144,24 +133,17 @@ def _score_chunk(chunk_text: str, keywords: list[str]) -> float:
         if kw in chunk_lower:
             hits += 1.0
         elif len(kw) >= 5 and kw[:5] in chunk_lower:
-            hits += 0.4   # partial stem match
-
-    # Normalise by number of meaningful keywords
+            hits += 0.4
     meaningful = [k for k in keywords if k not in STOP_WORDS and len(k) >= 3]
     return hits / len(meaningful) if meaningful else 0.0
 
 
 def filter_and_rank_chunks(chunks: list, keywords: list[str]) -> list:
-    """
-    Score every chunk, discard those below MIN_SCORE,
-    return top TOP_CHUNKS sorted by score descending.
-    """
     scored = []
     for chunk in chunks:
         score = _score_chunk(chunk["text"], keywords)
         if score >= MIN_SCORE:
             scored.append((score, chunk))
-
     scored.sort(key=lambda x: x[0], reverse=True)
     return [c for _, c in scored[:TOP_CHUNKS]]
 
@@ -212,7 +194,7 @@ def _call_batch(batch_chunks, original_question, client, stop_event):
                     {"role": "system", "content": system_prompt},
                     {"role": "user",   "content": user_prompt},
                 ],
-                temperature=0.0,   # 0 = most faithful to context, no creativity
+                temperature=0.0,
             )
             text = resp.choices[0].message.content.strip()
             return text if text != FALLBACK else ""
@@ -236,16 +218,12 @@ def _call_batch(batch_chunks, original_question, client, stop_event):
 # ---------------------------
 
 def ask_openai(chunks, question, client):
-    # 1. Expand question into keywords via OpenAI
     keywords = expand_question(question, client)
-
-    # 2. Filter and rank chunks — only relevant ones go to OpenAI
     relevant_chunks = filter_and_rank_chunks(chunks, keywords)
 
     if not relevant_chunks:
         return FALLBACK
 
-    # 3. Split into batches and call OpenAI in parallel
     batches = [
         relevant_chunks[i : i + MAX_CHUNK_BATCH]
         for i in range(0, len(relevant_chunks), MAX_CHUNK_BATCH)
@@ -278,7 +256,13 @@ def get_response(question: str):
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     client  = OpenAI(api_key=api_key) if api_key else OpenAI()
-    chunks  = load_pdf_chunks()
+
+    # ── Conversational layer (greetings, emotions, daily life) ───────────────
+    if is_small_talk(question):
+        return get_smalltalk_response(question, client)
+    # ─────────────────────────────────────────────────────────────────────────
+
+    chunks = load_pdf_chunks()
     return ask_openai(chunks, question, client)
 
 
@@ -303,7 +287,13 @@ def main():
         if not question:
             continue
 
-        answer = ask_openai(chunks, question, client)
+        # ── Conversational layer ─────────────────────────────────────────────
+        if is_small_talk(question):
+            answer = get_smalltalk_response(question, client)
+        else:
+            answer = ask_openai(chunks, question, client)
+        # ─────────────────────────────────────────────────────────────────────
+
         print(answer + "\n")
 
 

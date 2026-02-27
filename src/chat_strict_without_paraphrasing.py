@@ -17,7 +17,7 @@ from config import (
     TOP_K, SCORE_THRESHOLD,
 )
 
-from src.greetings_smart import handle_smalltalk
+from src.greetingsr import handle_smalltalk
 
 FALLBACK = "ntamakuru ndagira kuri iyi ngingo"
 
