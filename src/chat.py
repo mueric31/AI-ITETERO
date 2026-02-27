@@ -15,7 +15,10 @@ if ROOT not in sys.path:
 
 from utils import read_pdf_text, chunk_by_tokens
 from config import DATA, CHAT_MODEL, EMBED_MODEL
-from greetings import is_small_talk, get_smalltalk_response  # ← conversational layer
+try:
+    from .greetings import is_small_talk, get_smalltalk_response
+except ImportError:
+    from greetings import is_small_talk, get_smalltalk_response
 
 # ---------------------------
 # Constants
