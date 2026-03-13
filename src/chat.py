@@ -8,7 +8,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Add project root to sys.path if needed
 ROOT = Path(__file__).resolve().parent.parent
 if ROOT not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -20,20 +19,13 @@ try:
 except ImportError:
     from greetings import is_small_talk, get_smalltalk_response
 
-# ---------------------------
-# Constants
-# ---------------------------
-FALLBACK         = "Munyihanganire, nta makuru mfite kuri iyi ngingo."
-MAX_CHUNK_BATCH  = 30
-MAX_WORKERS      = 2
-RETRY_ATTEMPTS   = 5
-RETRY_BASE_WAIT  = 2.0
-MIN_SCORE        = 0.08
-TOP_CHUNKS       = 90
+FALLBACK        = "Munyihanganire, nta makuru mfite kuri iyi ngingo."
+RETRY_ATTEMPTS  = 5
+RETRY_BASE_WAIT = 2.0
 
-# ---------------------------
-# In-memory chunk cache
-# ---------------------------
+# ------------------------------------------------------------------
+# PDF loading
+# ------------------------------------------------------------------
 _cached_chunks = None
 
 def load_pdf_chunks():
@@ -55,10 +47,9 @@ def load_pdf_chunks():
 
     all_chunks = []
     print("📚 Loading PDFs and preparing skills data...")
-
     for pdf_path in pdf_files:
         if not pdf_path.exists():
-            print(f"⚠ {pdf_path} not found, skipping...")
+            print(f"⚠  {pdf_path} not found, skipping...")
             continue
         pages = read_pdf_text(str(pdf_path))
         for page_no, txt in pages:
@@ -77,114 +68,57 @@ def load_pdf_chunks():
     return _cached_chunks
 
 
-# ---------------------------
-# Step 1: Expand question into keywords
-# ---------------------------
+# ------------------------------------------------------------------
+# Core: send all chunks in batches, each batch answers independently.
+#
+# The prompt has one job:
+#   Read the question. Read the context.
+#   Understand what the person is really describing.
+#   If anything in the context relates to that situation — answer it.
+#   The book may use different words. That is fine.
+#   A general answer in the book applies to a specific case in real life.
+# ------------------------------------------------------------------
 
-def expand_question(question: str, client: OpenAI) -> list[str]:
-    prompt = (
-        "Reba ikibazo cy'umuturage mu Kinyarwanda hepfo.\n"
-        "Andika urutonde rw'amagambo y'ingenzi (keywords) 10-20 ajyanye n'ikibazo, "
-        "harimo: amagambo ya muganga, amagambo ya gakondo, amagambo afanana, "
-        "n'imizi y'amagambo (stems). Andika ijambo rimwe ku murongo. "
-        "Ntusobanure, ntandike interuro. Amagambo y'Ikinyarwanda gusa.\n\n"
-        f"Ikibazo: {question}"
-    )
-    try:
-        resp = client.chat.completions.create(
-            model=CHAT_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-            max_tokens=150,
-        )
-        raw = resp.choices[0].message.content.strip()
-        keywords = [
-            w.strip().lower().strip(".,;:-*•")
-            for w in raw.splitlines()
-            if w.strip() and len(w.strip()) > 2
-        ]
-        original_tokens = [
-            t.lower().strip(".,?!:;")
-            for t in question.split()
-            if len(t) > 2
-        ]
-        all_keywords = list(dict.fromkeys(original_tokens + keywords))
-        return all_keywords
-    except Exception:
-        return [t.lower().strip(".,?!:;") for t in question.split() if len(t) > 2]
+def _parse_retry_after(msg: str) -> float:
+    m = re.search(r"try again in (\d+(?:\.\d+)?)s", msg, re.IGNORECASE)
+    return float(m.group(1)) + 0.5 if m else 0.0
 
 
-# ---------------------------
-# Step 2: Score and filter chunks
-# ---------------------------
-
-STOP_WORDS = {
-    "ni", "mu", "ku", "wa", "na", "ko", "ngo", "ariko", "kandi",
-    "nta", "iki", "iyi", "uyu", "izi", "we", "ese", "ninde", "hari",
-    "aho", "ubwo", "nubwo", "kuko", "gusa", "cyane", "byo", "ibyo",
-    "abo", "aba", "ico", "izi", "nawe", "none", "mbere", "nyuma",
-}
-
-def _score_chunk(chunk_text: str, keywords: list[str]) -> float:
-    if not keywords:
-        return 0.0
-    chunk_lower = chunk_text.lower()
-    hits = 0.0
-    for kw in keywords:
-        if kw in STOP_WORDS or len(kw) < 3:
-            continue
-        if kw in chunk_lower:
-            hits += 1.0
-        elif len(kw) >= 5 and kw[:5] in chunk_lower:
-            hits += 0.4
-    meaningful = [k for k in keywords if k not in STOP_WORDS and len(k) >= 3]
-    return hits / len(meaningful) if meaningful else 0.0
-
-
-def filter_and_rank_chunks(chunks: list, keywords: list[str]) -> list:
-    scored = []
-    for chunk in chunks:
-        score = _score_chunk(chunk["text"], keywords)
-        if score >= MIN_SCORE:
-            scored.append((score, chunk))
-    scored.sort(key=lambda x: x[0], reverse=True)
-    return [c for _, c in scored[:TOP_CHUNKS]]
-
-
-# ---------------------------
-# Step 3: Batch call — strict PDF-only
-# ---------------------------
-
-def _parse_retry_after(error_msg: str) -> float:
-    match = re.search(r"try again in (\d+(?:\.\d+)?)s", error_msg, re.IGNORECASE)
-    return float(match.group(1)) + 0.5 if match else 0.0
-
-
-def _call_batch(batch_chunks, original_question, client, stop_event):
+def _call_batch(batch_chunks, question, client, stop_event):
     if stop_event.is_set():
         return ""
 
-    context = "\n\n".join(
-        f"[{c['source']} - Urupapuro {c['page']}]\n{c['text']}"
+    context = "\n\n---\n\n".join(
+        f"[{c['source']} p.{c['page']}]\n{c['text']}"
         for c in batch_chunks
     )
 
-    system_prompt = (
-        "Uri umufasha w'ubuzima uvuga Kinyarwanda gusa.\n\n"
-        "AMATEGEKO AKOMEYE:\n"
-        "1. Subiza GUSA ukoresheje amakuru ari mu CONTEXT hepfo.\n"
-        "2. Niba amakuru ari mu CONTEXT ariko akoresheje amagambo atandukanye "
-        "n'ikibazo cy'umuturage, huza ibisobanuro ukasubize.\n"
-        "3. UTIBAGIWE: Ntuzongere amakuru yavuye ahandi hantu "
-        "uretse ayo muri CONTEXT. Nta gutuza. Nta kwongera ibyo wibwiye.\n"
-        f"4. Niba nta makuru ajyanye muri CONTEXT, subiza GUSA uti: '{FALLBACK}'\n\n"
-        "Subiza mu Kinyarwanda, usobanure neza."
-    )
-
-    user_prompt = (
-        f"CONTEXT (bivuye mu bitabo by'ubuzima):\n{context}\n\n"
-        f"IKIBAZO CY'UMUTURAGE:\n{original_question}"
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are Inzozi, a Kinyarwanda child health assistant.\n"
+                "You answer only in Kinyarwanda.\n\n"
+                "Your reasoning process:\n"
+                "1. Understand what the person is actually describing — "
+                "the real situation, not just the words used.\n"
+                "2. Read the CONTEXT and ask yourself: does any part of this "
+                "cover the same situation, even if described differently or "
+                "more generally?\n"
+                "3. If yes — give that answer, adapted to what the person asked.\n"
+                "4. If no part of CONTEXT is relevant at all — "
+                f"reply only: '{FALLBACK}'\n\n"
+                "Never refuse to answer just because the exact words differ. "
+                "A book that says 'object' covers a question about a 'potato'. "
+                "A book that says 'fell' covers a question about 'fell off a wall'. "
+                "Use your understanding, not word matching."
+            )
+        },
+        {
+            "role": "user",
+            "content": f"CONTEXT:\n{context}\n\nQUESTION: {question}"
+        }
+    ]
 
     wait = RETRY_BASE_WAIT
     for attempt in range(RETRY_ATTEMPTS):
@@ -193,52 +127,41 @@ def _call_batch(batch_chunks, original_question, client, stop_event):
         try:
             resp = client.chat.completions.create(
                 model=CHAT_MODEL,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user",   "content": user_prompt},
-                ],
+                messages=messages,
                 temperature=0.0,
             )
             text = resp.choices[0].message.content.strip()
             return text if text != FALLBACK else ""
-
         except Exception as e:
             err = str(e)
             if "429" in err or "rate_limit" in err.lower():
-                sleep_for = _parse_retry_after(err) or wait
-                print(f"  ⏳ Rate limit — waiting {sleep_for:.1f}s (attempt {attempt+1}/{RETRY_ATTEMPTS})")
-                time.sleep(sleep_for)
+                wait_for = _parse_retry_after(err) or wait
+                ##print(f"  ⏳ Rate limit {wait_for:.1f}s "
+                      ##f"(attempt {attempt+1}/{RETRY_ATTEMPTS})")
+                time.sleep(wait_for)
                 wait *= 2
             else:
-                print(f"⚠ OpenAI error: {e}")
+                print(f"⚠  OpenAI error: {e}")
                 return ""
-
     return ""
 
 
-# ---------------------------
-# Main orchestrator
-# ---------------------------
+# ------------------------------------------------------------------
+# Orchestrator — send all chunks, collect first good answer
+# ------------------------------------------------------------------
 
 def ask_openai(chunks, question, client):
-    keywords = expand_question(question, client)
-    relevant_chunks = filter_and_rank_chunks(chunks, keywords)
-
-    if not relevant_chunks:
-        return FALLBACK
-
-    batches = [
-        relevant_chunks[i : i + MAX_CHUNK_BATCH]
-        for i in range(0, len(relevant_chunks), MAX_CHUNK_BATCH)
-    ]
+    BATCH = 35
+    batches = [chunks[i:i+BATCH] for i in range(0, len(chunks), BATCH)]
+    ##print(f"  📄 {len(chunks)} chunks | {len(batches)} batches")
 
     answers    = []
     stop_event = threading.Event()
 
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         futures = {
-            executor.submit(_call_batch, batch, question, client, stop_event): i
-            for i, batch in enumerate(batches)
+            executor.submit(_call_batch, b, question, client, stop_event): i
+            for i, b in enumerate(batches)
         }
         for future in as_completed(futures):
             result = future.result()
@@ -251,27 +174,19 @@ def ask_openai(chunks, question, client):
     return max(answers, key=len) if answers else FALLBACK
 
 
-# ---------------------------
-# Public function for FastAPI
-# ---------------------------
+# ------------------------------------------------------------------
+# Public API + CLI
+# ------------------------------------------------------------------
 
 def get_response(question: str):
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     client  = OpenAI(api_key=api_key) if api_key else OpenAI()
-
-    # ── Conversational layer (greetings, emotions, daily life) ───────────────
     if is_small_talk(question):
         return get_smalltalk_response(question, client)
-    # ─────────────────────────────────────────────────────────────────────────
-
     chunks = load_pdf_chunks()
     return ask_openai(chunks, question, client)
 
-
-# ---------------------------
-# CLI interface
-# ---------------------------
 
 def main():
     load_dotenv()
@@ -286,17 +201,12 @@ def main():
         except (EOFError, KeyboardInterrupt):
             print("\nMurakoze!")
             break
-
         if not question:
             continue
-
-        # ── Conversational layer ─────────────────────────────────────────────
         if is_small_talk(question):
             answer = get_smalltalk_response(question, client)
         else:
             answer = ask_openai(chunks, question, client)
-        # ─────────────────────────────────────────────────────────────────────
-
         print(answer + "\n")
 
 

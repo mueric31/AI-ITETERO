@@ -767,7 +767,7 @@ def _canned_reply(question: str) -> str:
 
     # Thanks
     if any(w in q for w in ["urakoze", "murakoze", "thank", "merci"]):
-        return "Murakoze! Nishimiye guganira nawe."
+        return "Murakoze! Nishimiye kuganira nawe."
 
     # Farewells
     if any(w in q for w in ["bye", "turabonana", "genda neza"]):
